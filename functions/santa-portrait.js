@@ -70,8 +70,13 @@ exports.handler = async (event) => {
 - PRESERVE SKIN TONE: Keep the exact skin tone and complexion from the original photo
 - PRESERVE HAIR: Keep the person's hair color, texture, and style exactly as shown in the photo
 - ONLY ADD COSTUME ELEMENTS: Add Santa costume elements WITHOUT changing any facial features
-- NEW BACKGROUND: Replace the background completely with a style-appropriate setting - DO NOT keep the original background
-- Photorealistic style, not cartoon`
+- Photorealistic style, not cartoon
+
+CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
+- NEVER PRESERVE THE ORIGINAL BACKGROUND: Completely replace the background with a NEW Christmas-themed background
+- GENERATE BACKGROUND BASED ON USER INPUT: Create a background that reflects their thoughts about Christmas: "${transcript}"
+- The background should be Christmas-themed and relate to what Christmas means to them (e.g., if they mention family, show a cozy family Christmas scene; if they mention giving, show a scene of giving gifts; if they mention joy, show a joyful Christmas celebration)
+- The background should match the style (jolly = warm and festive, pirate = any pirate-related setting with Christmas decorations, evil = dark and shadowy with twisted Christmas elements)`
 
     if (style === 'pirate') {
       // Pirate Santa style
@@ -88,11 +93,10 @@ Style requirements for MALE Pirate Santa (ADD these elements while preserving fa
 - Pirate hat (tricorn or similar) with Santa elements (maybe red with white trim, or Santa hat with pirate styling)
 - Pirate accessories: eye patch (optional), sword, or pirate belt
 - Jolly but adventurous expression (Santa's warmth with pirate's boldness)
-- NEW BACKGROUND: Replace background completely with a pirate ship deck or pirate setting with Christmas decorations - DO NOT keep original background
 - Mix of Christmas and pirate atmosphere
 - Still clearly recognizable as Santa, but with pirate flair
 
-The portrait should combine Santa's jolly Christmas spirit with pirate adventure. Return the image URL only.`
+The portrait should combine Santa's jolly Christmas spirit with pirate adventure. The background must be completely new, showing any pirate-related setting (e.g., pirate ship, treasure island, pirate tavern, pirate port) with Christmas decorations, and should relate to their thoughts about Christmas. Return the image URL only.`
       } else {
         imagePrompt = `Transform this person into a Female Pirate Santa Claus (Mrs. Claus with pirate elements) based on their thoughts about Christmas: "${transcript}".
 
@@ -106,10 +110,9 @@ Style requirements for FEMALE Pirate Santa (ADD these elements while preserving 
 - Pirate accessories: eye patch (optional), sword, or pirate belt
 - Warm but adventurous expression
 - Festive accessories combined with pirate elements
-- NEW BACKGROUND: Replace background completely with a pirate ship deck or pirate setting with Christmas decorations - DO NOT keep original background
 - Mix of Christmas and pirate atmosphere
 
-The portrait should combine Mrs. Claus's warmth with pirate adventure. Return the image URL only.`
+The portrait should combine Mrs. Claus's warmth with pirate adventure. The background must be completely new, showing any pirate-related setting (e.g., pirate ship, treasure island, pirate tavern, pirate port) with Christmas decorations, and should relate to their thoughts about Christmas. Return the image URL only.`
       }
     } else if (style === 'evil') {
       // Evil Santa style
@@ -125,12 +128,11 @@ Style requirements for MALE Evil Santa (ADD these elements while preserving face
 - Dark red or black Santa suit with dark fur trim (darker than traditional red)
 - Dark Santa hat (maybe black or dark red)
 - Sinister, mischievous expression (dark but still recognizable as Santa)
-- NEW BACKGROUND: Replace background completely with a dark, shadowy setting with twisted Christmas elements - DO NOT keep original background
 - Darker, moodier atmosphere
 - May have darker accessories or twisted Christmas decorations
 - Still recognizable as Santa but with an evil/mischievous twist
 
-The portrait should reflect an evil Santa character while maintaining the person's exact facial identity. Return the image URL only.`
+The portrait should reflect an evil Santa character while maintaining the person's exact facial identity. The background must be completely new, showing a dark, shadowy setting with twisted Christmas elements, and should relate to their thoughts about Christmas. Return the image URL only.`
       } else {
         imagePrompt = `Transform this person into an Evil Female Santa Claus (dark Mrs. Claus) based on their thoughts about Christmas: "${transcript}".
 
@@ -143,11 +145,10 @@ Style requirements for FEMALE Evil Santa (ADD these elements while preserving fa
 - Dark Santa hat (maybe black or dark red)
 - Sinister, mischievous expression
 - Darker accessories or twisted Christmas elements
-- NEW BACKGROUND: Replace background completely with a dark, shadowy setting with twisted Christmas elements - DO NOT keep original background
 - Darker, moodier atmosphere
 - Still recognizable as Mrs. Claus but with an evil/mischievous twist
 
-The portrait should reflect an evil Mrs. Claus character while maintaining the person's exact facial identity. Return the image URL only.`
+The portrait should reflect an evil Mrs. Claus character while maintaining the person's exact facial identity. The background must be completely new, showing a dark, shadowy setting with twisted Christmas elements, and should relate to their thoughts about Christmas. Return the image URL only.`
       }
     } else {
       // Default: Jolly Santa style
@@ -163,11 +164,10 @@ Style requirements for MALE Jolly Santa (ADD these elements while preserving fac
 - Red Santa suit with white fur trim
 - Red hat with white pom-pom
 - Jolly, cheerful expression
-- NEW BACKGROUND: Replace background completely with a warm, festive Christmas setting (e.g., cozy room with fireplace, Christmas tree, snowy window, or magical Christmas atmosphere) - DO NOT keep original background
 - Warm, festive atmosphere
 - Bright, joyful Christmas setting
 
-The portrait should reflect their understanding of Christmas while maintaining the person's exact facial identity. Return the image URL only.`
+The portrait should reflect their understanding of Christmas while maintaining the person's exact facial identity. The background must be completely new, showing a warm, festive Christmas setting (e.g., cozy room with fireplace, Christmas tree, snowy window, or magical Christmas atmosphere) that relates to their thoughts about Christmas. Return the image URL only.`
       } else {
         imagePrompt = `Transform this person into a Female Santa Claus (Mrs. Claus) based on their thoughts about Christmas: "${transcript}".
 
@@ -180,11 +180,10 @@ Style requirements for FEMALE Jolly Santa (ADD these elements while preserving f
 - Red hat with white fur trim
 - Warm, cheerful expression
 - Festive accessories (maybe a shawl or apron)
-- NEW BACKGROUND: Replace background completely with a warm, festive Christmas setting (e.g., cozy room with fireplace, Christmas tree, snowy window, or magical Christmas atmosphere) - DO NOT keep original background
 - Warm, festive atmosphere
 - Bright, joyful Christmas setting
 
-The portrait should reflect their understanding of Christmas while maintaining the person's exact facial identity. Return the image URL only.`
+The portrait should reflect their understanding of Christmas while maintaining the person's exact facial identity. The background must be completely new, showing a warm, festive Christmas setting (e.g., cozy room with fireplace, Christmas tree, snowy window, or magical Christmas atmosphere) that relates to their thoughts about Christmas. Return the image URL only.`
       }
     }
 

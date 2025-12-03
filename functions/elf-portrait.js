@@ -36,17 +36,23 @@ CRITICAL FACIAL PRESERVATION REQUIREMENTS (MUST BE FOLLOWED):
 - PRESERVE HAIR: Keep the person's hair color, texture, and style exactly as shown in the photo
 - ONLY ADD COSTUME ELEMENTS: Add elf costume, pointed ears, hat, and accessories WITHOUT changing any facial features
 
+CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
+- NEVER PRESERVE THE ORIGINAL BACKGROUND: Completely replace the background with a NEW Christmas-themed background
+- GENERATE BACKGROUND BASED ON USER INPUT: Create a background that reflects their Christmas wish: "${transcript}"
+- The background should be Christmas-themed and relate to what they want for Christmas (e.g., if they want toys, show a toy workshop; if they want a pet, show a Christmas scene with pets; if they want family time, show a cozy family Christmas setting)
+- The background should be vibrant, magical, and festive, matching the Christmas theme
+
 Style requirements (ADD these elements while preserving face):
 - Colorful Christmas elf costume (red, green, gold colors) - ADD as clothing only
 - Pointed elf ears - ADD as prosthetic-like extensions, do not change ear shape
 - Festive hat with bells - ADD as headwear
 - Cheerful, happy expression - USE the person's natural expression
 - Christmas-themed accessories (candy canes, presents, etc.) - ADD as props
-- Bright, vibrant colors in background and costume
+- Bright, vibrant colors in costume
 - Magical, festive atmosphere
 - Photorealistic style, not cartoon
 
-The portrait should be colorful, joyful, and Christmas-themed while maintaining the person's exact facial identity. Return the image URL only.`
+The portrait should be colorful, joyful, and Christmas-themed while maintaining the person's exact facial identity. The background must be completely new and based on their Christmas wish. Return the image URL only.`
     } else if (style === 'evil-elf') {
       imagePrompt = `Transform this person into an evil/mischievous Christmas elf based on their Christmas wish: "${transcript}". 
 
@@ -58,15 +64,21 @@ CRITICAL FACIAL PRESERVATION REQUIREMENTS (MUST BE FOLLOWED):
 - ONLY ADD COSTUME ELEMENTS: Add elf costume, pointed ears, hat, and accessories WITHOUT changing any facial features
 - EXPRESSION: Use the person's natural expression - do not dramatically alter their facial expression
 
+CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
+- NEVER PRESERVE THE ORIGINAL BACKGROUND: Completely replace the background with a NEW dark, moody Christmas-themed background
+- GENERATE BACKGROUND BASED ON USER INPUT: Create a background that reflects their Christmas wish: "${transcript}" but with a darker, mischievous twist
+- The background should be Christmas-themed but with an evil/mischievous atmosphere (e.g., dark workshop, shadowy Christmas setting, twisted Christmas decorations)
+- The background should relate to what they want for Christmas but with a darker, moodier tone
+
 Style requirements (ADD these elements while preserving face):
 - Darker Christmas elf costume (dark red, dark green, black accents) - ADD as clothing only
 - Pointed elf ears - ADD as prosthetic-like extensions, do not change ear shape
-- Darker, moodier atmosphere in background and lighting
+- Darker, moodier lighting
 - May have darker accessories or twisted Christmas elements - ADD as props
 - Still recognizable as an elf but with an evil/mischievous twist through costume and atmosphere
 - Photorealistic style, not cartoon
 
-The portrait should reflect an evil/mischievous elf character while maintaining the person's exact facial identity. Return the image URL only.`
+The portrait should reflect an evil/mischievous elf character while maintaining the person's exact facial identity. The background must be completely new, dark, and based on their Christmas wish. Return the image URL only.`
     } else if (style === 'dobby') {
       imagePrompt = `Transform this person into Dobby the house-elf (from Harry Potter) style, but with Christmas elements, based on their Christmas wish: "${transcript}". 
 
@@ -80,11 +92,16 @@ CRITICAL REQUIREMENTS:
   * Slightly smaller stature/proportions (make the person appear slightly smaller in frame)
   * Dobby's gentle, kind expression (adapt the person's expression to be warm and kind like Dobby)
 - DOBBY CLOTHING: Dress the person in Dobby's signature pillowcase garment, but with Christmas colors/patterns (red, green, gold Christmas-themed pillowcase)
-- NEW BACKGROUND: Replace the background completely with a Christmas-themed setting (e.g., cozy room with fireplace, Christmas decorations, snowy window, or magical Christmas atmosphere) - DO NOT keep the original background
+
+CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
+- NEVER PRESERVE THE ORIGINAL BACKGROUND: Completely replace the background with a NEW Christmas-themed background
+- GENERATE BACKGROUND BASED ON USER INPUT: Create a background that reflects their Christmas wish: "${transcript}"
+- The background should be Christmas-themed and relate to what they want for Christmas (e.g., if they want toys, show a magical toy workshop; if they want a pet, show a cozy Christmas scene with pets; if they want family time, show a warm family Christmas setting)
+- The background should be cozy, magical, and festive, matching the Christmas theme and Dobby's gentle nature
 - Christmas-themed elements: Add Christmas accessories or decorations in the scene
 - Photorealistic style, not cartoon
 
-The person should look like Dobby (with large eyes and bat ears) while still being recognizable as themselves. The background should be completely new and Christmas-themed. Return the image URL only.`
+The person should look like Dobby (with large eyes and bat ears) while still being recognizable as themselves. The background must be completely new, Christmas-themed, and based on their Christmas wish. Return the image URL only.`
     } else {
       // Default to Santa's helper
       imagePrompt = `Transform this person into a colorful, Christmas-themed elf (Santa's helper) based on their Christmas wish: "${transcript}". 
@@ -96,17 +113,23 @@ CRITICAL FACIAL PRESERVATION REQUIREMENTS (MUST BE FOLLOWED):
 - PRESERVE HAIR: Keep the person's hair color, texture, and style exactly as shown in the photo
 - ONLY ADD COSTUME ELEMENTS: Add elf costume, pointed ears, hat, and accessories WITHOUT changing any facial features
 
+CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
+- NEVER PRESERVE THE ORIGINAL BACKGROUND: Completely replace the background with a NEW Christmas-themed background
+- GENERATE BACKGROUND BASED ON USER INPUT: Create a background that reflects their Christmas wish: "${transcript}"
+- The background should be Christmas-themed and relate to what they want for Christmas (e.g., if they want toys, show a toy workshop; if they want a pet, show a Christmas scene with pets; if they want family time, show a cozy family Christmas setting)
+- The background should be vibrant, magical, and festive, matching the Christmas theme
+
 Style requirements (ADD these elements while preserving face):
 - Colorful Christmas elf costume (red, green, gold colors) - ADD as clothing only
 - Pointed elf ears - ADD as prosthetic-like extensions, do not change ear shape
 - Festive hat with bells - ADD as headwear
 - Cheerful, happy expression - USE the person's natural expression
 - Christmas-themed accessories (candy canes, presents, etc.) - ADD as props
-- Bright, vibrant colors in background and costume
+- Bright, vibrant colors in costume
 - Magical, festive atmosphere
 - Photorealistic style, not cartoon
 
-The portrait should be colorful, joyful, and Christmas-themed while maintaining the person's exact facial identity. Return the image URL only.`
+The portrait should be colorful, joyful, and Christmas-themed while maintaining the person's exact facial identity. The background must be completely new and based on their Christmas wish. Return the image URL only.`
     }
 
     // Generate image
