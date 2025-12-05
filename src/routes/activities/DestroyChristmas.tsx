@@ -8,25 +8,21 @@ import { useClearLocalStorage } from '../../hooks/useClearLocalStorage'
 import { readLocalJson, writeLocalJson } from '../../utils/storage'
 import { useConfetti } from '../../hooks/useConfetti'
 
-const STORAGE_KEY = 'become-santa-storage'
+const STORAGE_KEY = 'destroy-christmas-storage'
 
 const praiseWords = [
-  'Pure Christmas magic',
-  'Wonder-filled',
-  'North-Pole-worthy',
-  'Santa would be proud',
-  'Snow-globe perfect',
-  'Reindeer-level awesome',
-  'Sleigh-ride spectacular',
-  'North-Star brilliant',
-  'Christmas-Eve epic',
-  'Magical',
-  'True christmas spirit',
-  'Spectacular',
-  'Super dooper awesome',
+  'Horrible',
+  'Disgusting',
+  'Terrible',
+  'Very Evil',
+  'Notorious',
+  'Shame on you',
+  'You kiss your mom with that mouth?',
+  'How could you???',
+  'Maniac',
 ]
 
-const BecomeSanta = () => {
+const DestroyChristmas = () => {
   useClearLocalStorage([STORAGE_KEY])
 
   const { isRecording, startRecording, stopRecording } = useRecorder()
@@ -47,7 +43,17 @@ const BecomeSanta = () => {
     clearTimers()
     setPraiseWord(praiseWords[Math.floor(Math.random() * praiseWords.length)])
     setCelebrationStage('praise')
-    fire()
+    // Fire confetti with black and red colors for Destroy Christmas
+    fire([
+      '#000000', // Black
+      '#1A1A1A', // Dark black
+      '#0A0A0A', // Very dark black
+      '#DC2626', // Red
+      '#B91C1C', // Dark red
+      '#EF4444', // Light red
+      '#991B1B', // Darker red
+      '#7F1D1D', // Very dark red
+    ])
     timers.current.push(
       window.setTimeout(() => {
         setCelebrationStage('done')
@@ -69,7 +75,8 @@ const BecomeSanta = () => {
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([])
   const [selectedCameraId, setSelectedCameraId] = useState<string>('')
   const [textInput, setTextInput] = useState('')
-  const [santaStyle, setSantaStyle] = useState<'jolly' | 'pirate' | 'evil'>('jolly')
+  const [mode, setMode] = useState<'single' | 'group'>('single')
+  const [destroyStyle, setDestroyStyle] = useState<'grinch' | 'terminator' | 'literally-me'>('grinch')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleRecord = async () => {
@@ -91,7 +98,7 @@ const BecomeSanta = () => {
         transcript: string
       }>('/santa-chat', {
         audioBlob: base64,
-        activity: 'become-santa',
+        activity: 'destroy-christmas',
       })
 
       const transcriptText = response.transcript || ''
@@ -110,7 +117,7 @@ const BecomeSanta = () => {
 
   const handleSubmitText = useCallback(async () => {
     if (!textInput.trim()) {
-      setErrorMessage('Please type your thoughts about Christmas.')
+      setErrorMessage('Please type your thoughts about why people should not celebrate Christmas.')
       return
     }
 
@@ -121,7 +128,7 @@ const BecomeSanta = () => {
         transcript: string
       }>('/santa-chat', {
         textInput: textInput.trim(),
-        activity: 'become-santa',
+        activity: 'destroy-christmas',
       })
 
       const transcriptText = response.transcript || ''
@@ -156,9 +163,11 @@ const BecomeSanta = () => {
   // Camera helpers
   const enumerateCameras = async () => {
     try {
+      // Request permission first
       const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
       tempStream.getTracks().forEach((track) => track.stop())
       
+      // Now enumerate devices
       const devices = await navigator.mediaDevices.enumerateDevices()
       const videoDevices = devices.filter((device) => device.kind === 'videoinput')
       setAvailableCameras(videoDevices)
@@ -166,7 +175,9 @@ const BecomeSanta = () => {
         setSelectedCameraId(videoDevices[0].deviceId)
       }
     } catch (error) {
-      console.error('Error enumerating cameras:', error)
+      // Silently handle camera permission errors - user can grant permission later when they click "Start Camera"
+      console.log('Camera enumeration skipped (permission not granted or no camera available):', error)
+      setAvailableCameras([])
     }
   }
 
@@ -175,6 +186,11 @@ const BecomeSanta = () => {
       setCameraError(undefined)
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
+      }
+      
+      // If no cameras are available, try to enumerate again (user may have granted permission)
+      if (availableCameras.length === 0) {
+        await enumerateCameras()
       }
       
       const constraints: MediaStreamConstraints = {
@@ -192,13 +208,27 @@ const BecomeSanta = () => {
         await videoRef.current.play()
       }
       setCameraReady(true)
+      
+      // After starting camera, enumerate devices again to get proper labels
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const videoDevices = devices.filter((device) => device.kind === 'videoinput')
+      if (videoDevices.length > 0) {
+        setAvailableCameras(videoDevices)
+        if (!selectedCameraId && videoDevices.length > 0) {
+          setSelectedCameraId(videoDevices[0].deviceId)
+        }
+      }
     } catch (error) {
       setCameraError((error as Error).message)
     }
   }
 
   useEffect(() => {
-    enumerateCameras()
+    enumerateCameras().catch((error) => {
+      // Handle any unhandled promise rejections
+      console.log('Camera enumeration error handled:', error)
+      setAvailableCameras([])
+    })
   }, [])
 
   const captureFrame = () => {
@@ -220,7 +250,7 @@ const BecomeSanta = () => {
     }
 
     if (!transcript) {
-      setCameraError('Please record your thoughts about Christmas first.')
+      setCameraError('Please record your thoughts about why people should not celebrate Christmas first.')
       return
     }
 
@@ -232,10 +262,11 @@ const BecomeSanta = () => {
     try {
       const response = await apiClient.post<{
         styledImageUrl: string
-      }>('/santa-portrait', {
+      }>('/destroy-christmas-portrait', {
         photoDataUrl: imageUrl,
         transcript,
-        style: santaStyle,
+        mode,
+        style: destroyStyle,
       })
 
       setStyledUrl(response.styledImageUrl)
@@ -254,7 +285,7 @@ const BecomeSanta = () => {
 
   const handleSendEmail = async () => {
     if (!styledUrl) {
-      setEmailStatus('Generate a Santa portrait first.')
+      setEmailStatus('Generate a portrait first.')
       return
     }
     if (!email.trim()) {
@@ -267,7 +298,7 @@ const BecomeSanta = () => {
       await apiClient.post('/send-photo-email', {
         email,
         styledImageUrl: styledUrl,
-        characterType: 'santa',
+        characterType: 'destroy-christmas',
       })
       setEmailStatus('Email sent! Check your inbox.')
     } catch (error) {
@@ -279,15 +310,15 @@ const BecomeSanta = () => {
 
   const getPrompt = () => {
     return {
-      en: 'What does Christmas mean to you and why is it important to celebrate?',
-      th: 'คริสต์มาสมีความหมายต่อคุณอย่างไร และทำไมจึงสำคัญที่ต้องฉลอง?',
+      en: 'Why do you think people should not celebrate Christmas?',
+      th: 'ทำไมคุณคิดว่าคนไม่ควรฉลองคริสต์มาส?',
     }
   }
 
   return (
     <ActivityLayout
-      title="Become Santa"
-      subtitle="Share what Christmas means to you and transform into Santa!"
+      title="Destroy Christmas"
+      subtitle="Share why people should not celebrate Christmas and become a Christmas destroyer!"
     >
       {/* Voice Recording Section */}
       <section className="space-y-4 rounded-2xl border-2 border-white bg-[#16A34A]/10 p-4">
@@ -303,7 +334,7 @@ const BecomeSanta = () => {
             </div>
           </div>
 
-          {/* Input Section - Show both recording and text input side by side when not recording */}
+          {/* Input Section */}
           <div className="flex flex-wrap items-start gap-3">
             {/* Start Recording Button */}
             <button
@@ -330,7 +361,7 @@ const BecomeSanta = () => {
                 <textarea
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Type your thoughts about Christmas here..."
+                  placeholder="Type your thoughts about why people should not celebrate Christmas here..."
                   className="flex-1 rounded-xl border-2 border-white/30 bg-[#ee564a]/20 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:border-white resize-none"
                   rows={1}
                 />
@@ -396,10 +427,18 @@ const BecomeSanta = () => {
 
         {/* Photo Booth Section - Only show when transcript exists */}
         {transcript && (
-          <section className="space-y-4 rounded-2xl border-2 border-white bg-gradient-to-br from-[#DC2626]/40 via-[#B91C1C]/30 to-[#16A34A]/30 p-4 shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-            <h3 className="text-xl font-semibold text-white">Transform into Santa!</h3>
+          <section className="space-y-4 rounded-2xl border-2 border-white bg-black/90 p-4 relative overflow-hidden" style={{
+            backgroundImage: `radial-gradient(circle at 20% 30%, rgba(139,0,0,0.3) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 70%, rgba(139,0,0,0.2) 0%, transparent 50%),
+                              radial-gradient(circle at 50% 50%, rgba(139,0,0,0.1) 0%, transparent 50%)`,
+          }}>
+            <div className="absolute inset-0 opacity-20" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,10 Q30,5 50,10 T90,10' stroke='%23DC2626' stroke-width='2' fill='none' opacity='0.6'/%3E%3Cpath d='M20,20 Q40,15 60,20 T90,20' stroke='%23DC2626' stroke-width='1.5' fill='none' opacity='0.4'/%3E%3Cpath d='M15,30 Q35,25 55,30 T90,30' stroke='%23DC2626' stroke-width='1' fill='none' opacity='0.3'/%3E%3C/svg%3E")`,
+              backgroundSize: '200px 200px',
+            }}></div>
+            <h3 className="text-xl font-semibold text-white relative z-10">Destroy Christmas!</h3>
 
-            <div className="grid gap-6 md:grid-cols-[3fr,2fr]">
+            <div className="grid gap-6 md:grid-cols-[3fr,2fr] relative z-10">
               <div className="space-y-3">
                 <p className="text-sm text-white/70">Live camera preview</p>
                 {availableCameras.length > 0 && (
@@ -414,7 +453,7 @@ const BecomeSanta = () => {
                           streamRef.current.getTracks().forEach((track) => track.stop())
                         }
                       }}
-                      className="w-full rounded-xl border-2 border-white/30 bg-gradient-to-r from-[#DC2626]/60 to-[#16A34A]/60 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:border-white"
+                      className="w-full rounded-xl border-2 border-white/30 bg-black/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:border-white"
                     >
                       {availableCameras.map((camera) => (
                         <option key={camera.deviceId} value={camera.deviceId}>
@@ -424,8 +463,11 @@ const BecomeSanta = () => {
                     </select>
                   </div>
                 )}
-                <div className="rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#DC2626]/30 via-[#B91C1C]/20 to-[#16A34A]/20 p-3 shadow-[0_0_15px_rgba(220,38,38,0.2)]">
-                  <video ref={videoRef} className="h-96 w-full rounded-xl bg-gradient-to-br from-[#DC2626]/20 to-[#16A34A]/20 object-cover" playsInline muted />
+                <div className="rounded-2xl border-2 border-white/20 bg-black/80 p-3 relative overflow-hidden" style={{
+                  backgroundImage: `radial-gradient(circle at 30% 40%, rgba(139,0,0,0.4) 0%, transparent 60%),
+                                    radial-gradient(circle at 70% 60%, rgba(139,0,0,0.3) 0%, transparent 60%)`,
+                }}>
+                  <video ref={videoRef} className="h-96 w-full rounded-xl bg-black object-cover relative z-10" playsInline muted />
                   <div className="mt-3 flex flex-wrap gap-3">
                     <button
                       onClick={startCamera}
@@ -445,40 +487,70 @@ const BecomeSanta = () => {
                 {cameraError && <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-200">{cameraError}</p>}
               </div>
 
-              <div className="space-y-3 rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#DC2626]/30 via-[#F59E0B]/20 to-[#16A34A]/30 p-4 shadow-[0_0_15px_rgba(220,38,38,0.2)]">
-                {/* Santa Style Selection */}
+              <div className="space-y-3 rounded-2xl border-2 border-white/20 bg-black/80 p-4 relative overflow-hidden" style={{
+                backgroundImage: `radial-gradient(circle at 20% 30%, rgba(139,0,0,0.3) 0%, transparent 50%),
+                                  radial-gradient(circle at 80% 70%, rgba(139,0,0,0.2) 0%, transparent 50%)`,
+              }}>
+                {/* Mode Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm text-white/70 block">Choose Santa Style</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <label className="text-sm text-red-200/80 block font-semibold">Choose Mode</label>
+                  <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => setSantaStyle('jolly')}
+                      onClick={() => setMode('single')}
                       className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
-                        santaStyle === 'jolly'
-                          ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
-                          : 'border-white/30 bg-[#DC2626]/20 text-white/70 hover:border-white/60'
+                        mode === 'single'
+                          ? 'border-red-600 bg-red-900/40 text-red-100 shadow-[0_0_10px_rgba(220,38,38,0.6)]'
+                          : 'border-red-800/50 bg-black/60 text-red-300/70 hover:border-red-700/70 hover:bg-red-950/30'
                       }`}
                     >
-                      Jolly
+                      1 Person
                     </button>
                     <button
-                      onClick={() => setSantaStyle('pirate')}
+                      onClick={() => setMode('group')}
                       className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
-                        santaStyle === 'pirate'
-                          ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
-                          : 'border-white/30 bg-[#DC2626]/20 text-white/70 hover:border-white/60'
+                        mode === 'group'
+                          ? 'border-red-600 bg-red-900/40 text-red-100 shadow-[0_0_10px_rgba(220,38,38,0.6)]'
+                          : 'border-red-800/50 bg-black/60 text-red-300/70 hover:border-red-700/70 hover:bg-red-950/30'
                       }`}
                     >
-                      Pirate
+                      Group
+                    </button>
+                  </div>
+                </div>
+
+                {/* Style Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm text-red-200/80 block font-semibold">Choose Style</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      onClick={() => setDestroyStyle('grinch')}
+                      className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
+                        destroyStyle === 'grinch'
+                          ? 'border-red-600 bg-red-900/40 text-red-100 shadow-[0_0_10px_rgba(220,38,38,0.6)]'
+                          : 'border-red-800/50 bg-black/60 text-red-300/70 hover:border-red-700/70 hover:bg-red-950/30'
+                      }`}
+                    >
+                      Grinch
                     </button>
                     <button
-                      onClick={() => setSantaStyle('evil')}
+                      onClick={() => setDestroyStyle('terminator')}
                       className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
-                        santaStyle === 'evil'
-                          ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
-                          : 'border-white/30 bg-[#DC2626]/20 text-white/70 hover:border-white/60'
+                        destroyStyle === 'terminator'
+                          ? 'border-red-600 bg-red-900/40 text-red-100 shadow-[0_0_10px_rgba(220,38,38,0.6)]'
+                          : 'border-red-800/50 bg-black/60 text-red-300/70 hover:border-red-700/70 hover:bg-red-950/30'
                       }`}
                     >
-                      Evil Santa
+                      Terminator
+                    </button>
+                    <button
+                      onClick={() => setDestroyStyle('literally-me')}
+                      className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
+                        destroyStyle === 'literally-me'
+                          ? 'border-cyan-400 bg-cyan-900/40 text-cyan-100 shadow-[0_0_10px_rgba(34,211,238,0.6)]'
+                          : 'border-cyan-800/50 bg-black/60 text-cyan-300/70 hover:border-cyan-600/70 hover:bg-cyan-950/30'
+                      }`}
+                    >
+                      Literally Me
                     </button>
                   </div>
                 </div>
@@ -486,19 +558,19 @@ const BecomeSanta = () => {
                 <button
                   onClick={handleGenerate}
                   disabled={isGenerating || !transcript}
-                  className="w-full rounded-xl border-2 border-white bg-white/20 px-6 py-3 font-semibold text-white transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.5)]"
+                  className="w-full rounded-xl border-2 border-red-600 bg-red-900/40 px-6 py-3 font-semibold text-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-red-800/50 hover:shadow-[0_0_20px_rgba(220,38,38,0.7)] hover:border-red-500"
                 >
                   {isGenerating ? (
                     <>
                       <motion.span
-                        className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white"
+                        className="h-4 w-4 rounded-full border-2 border-red-400/40 border-t-red-200"
                         animate={{ rotate: 360 }}
                         transition={{ repeat: Infinity, ease: 'linear', duration: 0.8 }}
                       />
-                      Generating Santa Portrait...
+                      Generating Portrait...
                     </>
                   ) : (
-                    'Generate Santa Portrait'
+                    'Generate Portrait'
                   )}
                 </button>
               </div>
@@ -519,19 +591,19 @@ const BecomeSanta = () => {
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, ease: 'linear', duration: 1 }}
                   />
-                  <p className="text-sm text-white/70 mt-4">Creating your Santa portrait...</p>
+                  <p className="text-sm text-white/70 mt-4">Creating your portrait...</p>
                 </div>
               )}
 
               {styledUrl && !isGenerating && (
                 <div className="space-y-2 rounded-2xl border-2 border-[#DC2626] bg-[#DC2626]/10 p-4">
-                  <p className="text-sm font-semibold text-[#DC2626]">Your Santa Portrait</p>
+                  <p className="text-sm font-semibold text-[#DC2626]">Your Portrait</p>
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(true)}
                     className="w-full focus:outline-none"
                   >
-                    <img src={styledUrl} alt="Santa Portrait" className="w-full rounded-xl border-2 border-white/10 object-cover transition hover:opacity-90 cursor-pointer" />
+                    <img src={styledUrl} alt="Portrait" className="w-full rounded-xl border-2 border-white/10 object-cover transition hover:opacity-90 cursor-pointer" />
                   </button>
                   
                   <div className="space-y-2 mt-4">
@@ -572,7 +644,7 @@ const BecomeSanta = () => {
                 >
                   <motion.img
                     src={styledUrl}
-                    alt="Expanded Santa Portrait"
+                    alt="Expanded Portrait"
                     className="max-h-[90vh] max-w-5xl rounded-2xl border border-white/20 object-contain"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
@@ -588,5 +660,5 @@ const BecomeSanta = () => {
     )
   }
 
-  export default BecomeSanta
+  export default DestroyChristmas
 

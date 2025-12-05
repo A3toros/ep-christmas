@@ -45,9 +45,20 @@ const ConfettiOverlay = () => {
     }
   }, [engineReady, visible])
 
+  const [customColors, setCustomColors] = useState<string[] | undefined>(undefined)
+
   useEffect(() => {
-    const handler = () => {
-      console.log('[ConfettiOverlay] Event received, current visibleRef:', visibleRef.current)
+    const handler = (event: Event) => {
+      const customEvent = event as CustomEvent<{ colors?: string[] }>
+      const colors = customEvent.detail?.colors
+      console.log('[ConfettiOverlay] Event received, current visibleRef:', visibleRef.current, 'custom colors:', colors)
+      
+      if (colors) {
+        setCustomColors(colors)
+      } else {
+        setCustomColors(undefined)
+      }
+      
       if (timeoutRef.current !== null) {
         console.log('[ConfettiOverlay] Clearing existing timeout:', timeoutRef.current)
         const oldTimeout = timeoutRef.current
@@ -127,6 +138,20 @@ const ConfettiOverlay = () => {
     }
   }, [])
 
+  const defaultColors = [
+    '#DC2626', // Christmas red
+    '#B91C1C', // Dark red
+    '#EF4444', // Light red
+    '#16A34A', // Christmas green
+    '#15803D', // Dark green
+    '#22C55E', // Light green
+    '#FFFFFF', // White
+    '#F3F4F6', // Off-white
+    '#E5E7EB', // Light gray-white
+  ]
+
+  const particleColors = customColors || defaultColors
+
   const options = useMemo(
     () => ({
       fullScreen: { enable: true },
@@ -135,20 +160,7 @@ const ConfettiOverlay = () => {
       particles: {
         number: { value: 0 },
         color: {
-          value: [
-            '#FFD700', // Bright gold
-            '#FF6B6B', // Bright red
-            '#4ECDC4', // Bright turquoise
-            '#FFE66D', // Bright yellow
-            '#FF8B94', // Bright pink
-            '#95E1D3', // Bright mint
-            '#F38181', // Bright coral
-            '#AA96DA', // Bright purple
-            '#FCBAD3', // Bright rose
-            '#FFD93D', // Bright lemon
-            '#6BCB77', // Bright green
-            '#4D96FF', // Bright blue
-          ],
+          value: particleColors,
         },
         shape: { 
           type: ['circle', 'square', 'star'],
@@ -170,8 +182,8 @@ const ConfettiOverlay = () => {
           enable: true,
           gravity: { 
             enable: true, 
-            acceleration: 12,
-            maxSpeed: 80,
+            acceleration: 15,
+            maxSpeed: 100,
           },
           speed: { min: 40, max: 80 },
           decay: 0.05,
@@ -205,6 +217,7 @@ const ConfettiOverlay = () => {
         },
       },
       emitters: [
+        // Left emitter
         {
           life: { 
             duration: 0.3,
@@ -212,24 +225,24 @@ const ConfettiOverlay = () => {
           },
           rate: {
             delay: 0,
-            quantity: 100,
+            quantity: 50,
           },
           position: { 
-            x: 50, 
-            y: 50,
+            x: 20, 
+            y: 90,
             mode: 'percent' as const,
           },
           size: { 
-            width: 100, 
-            height: 100,
+            width: 0, 
+            height: 0,
           },
           particles: {
             move: {
               angle: { 
-                value: 270, 
-                offset: { min: -60, max: 60 },
+                value: 90, 
+                offset: { min: -45, max: 45 },
               },
-              speed: { min: 40, max: 80 },
+              speed: { min: 60, max: 100 },
             },
             life: {
               duration: {
@@ -241,17 +254,95 @@ const ConfettiOverlay = () => {
               value: { min: 8, max: 16 },
             },
             color: {
-              value: [
-                '#FFD700', '#FF6B6B', '#4ECDC4', '#FFE66D', '#FF8B94',
-                '#95E1D3', '#F38181', '#AA96DA', '#FCBAD3', '#FFD93D',
-                '#6BCB77', '#4D96FF',
-              ],
+              value: particleColors,
+            },
+          },
+        },
+        // Center emitter
+        {
+          life: { 
+            duration: 0.3,
+            count: 1,
+          },
+          rate: {
+            delay: 0,
+            quantity: 50,
+          },
+          position: { 
+            x: 50, 
+            y: 90,
+            mode: 'percent' as const,
+          },
+          size: { 
+            width: 0, 
+            height: 0,
+          },
+          particles: {
+            move: {
+              angle: { 
+                value: 90, 
+                offset: { min: -45, max: 45 },
+              },
+              speed: { min: 60, max: 100 },
+            },
+            life: {
+              duration: {
+                sync: false,
+                value: { min: 3, max: 5 },
+              },
+            },
+            size: {
+              value: { min: 8, max: 16 },
+            },
+            color: {
+              value: particleColors,
+            },
+          },
+        },
+        // Right emitter
+        {
+          life: { 
+            duration: 0.3,
+            count: 1,
+          },
+          rate: {
+            delay: 0,
+            quantity: 50,
+          },
+          position: { 
+            x: 80, 
+            y: 90,
+            mode: 'percent' as const,
+          },
+          size: { 
+            width: 0, 
+            height: 0,
+          },
+          particles: {
+            move: {
+              angle: { 
+                value: 90, 
+                offset: { min: -45, max: 45 },
+              },
+              speed: { min: 60, max: 100 },
+            },
+            life: {
+              duration: {
+                sync: false,
+                value: { min: 3, max: 5 },
+              },
+            },
+            size: {
+              value: { min: 8, max: 16 },
+            },
+            color: {
+              value: particleColors,
             },
           },
         },
       ],
     }),
-    [],
+    [particleColors],
   )
 
   const shouldRender = visible && engineReady

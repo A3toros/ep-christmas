@@ -74,9 +74,9 @@ exports.handler = async (event) => {
       return badRequest('Either audioBlob or textInput is required')
     }
 
-    if (activity === 'become-santa') {
-      // For Become Santa activity, just return transcript
-      console.log('[santa-chat] Become Santa activity, returning transcript only')
+    if (activity === 'become-santa' || activity === 'give-santa-ride' || activity === 'destroy-christmas') {
+      // For Become Santa, Give Santa a Ride, and Destroy Christmas activities, just return transcript
+      console.log('[santa-chat] Activity:', activity, 'returning transcript only')
       const totalDuration = Date.now() - startTime
       console.log('[santa-chat] Function completed successfully', {
         duration: `${totalDuration}ms`,

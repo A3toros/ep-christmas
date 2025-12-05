@@ -8,7 +8,7 @@ import { useClearLocalStorage } from '../../hooks/useClearLocalStorage'
 import { readLocalJson, writeLocalJson } from '../../utils/storage'
 import { useConfetti } from '../../hooks/useConfetti'
 
-const STORAGE_KEY = 'become-santa-storage'
+const STORAGE_KEY = 'give-santa-ride-storage'
 
 const praiseWords = [
   'Pure Christmas magic',
@@ -26,7 +26,7 @@ const praiseWords = [
   'Super dooper awesome',
 ]
 
-const BecomeSanta = () => {
+const GiveSantaRide = () => {
   useClearLocalStorage([STORAGE_KEY])
 
   const { isRecording, startRecording, stopRecording } = useRecorder()
@@ -69,7 +69,8 @@ const BecomeSanta = () => {
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([])
   const [selectedCameraId, setSelectedCameraId] = useState<string>('')
   const [textInput, setTextInput] = useState('')
-  const [santaStyle, setSantaStyle] = useState<'jolly' | 'pirate' | 'evil'>('jolly')
+  const [mode, setMode] = useState<'single' | 'group'>('single')
+  const [sleighStyle, setSleighStyle] = useState<'rider' | 'the-ride' | 'the-mess'>('rider')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleRecord = async () => {
@@ -91,7 +92,7 @@ const BecomeSanta = () => {
         transcript: string
       }>('/santa-chat', {
         audioBlob: base64,
-        activity: 'become-santa',
+        activity: 'give-santa-ride',
       })
 
       const transcriptText = response.transcript || ''
@@ -110,7 +111,7 @@ const BecomeSanta = () => {
 
   const handleSubmitText = useCallback(async () => {
     if (!textInput.trim()) {
-      setErrorMessage('Please type your thoughts about Christmas.')
+      setErrorMessage('Please type your thoughts about giving presents on Christmas.')
       return
     }
 
@@ -121,7 +122,7 @@ const BecomeSanta = () => {
         transcript: string
       }>('/santa-chat', {
         textInput: textInput.trim(),
-        activity: 'become-santa',
+        activity: 'give-santa-ride',
       })
 
       const transcriptText = response.transcript || ''
@@ -156,9 +157,11 @@ const BecomeSanta = () => {
   // Camera helpers
   const enumerateCameras = async () => {
     try {
+      // Request permission first
       const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
       tempStream.getTracks().forEach((track) => track.stop())
       
+      // Now enumerate devices
       const devices = await navigator.mediaDevices.enumerateDevices()
       const videoDevices = devices.filter((device) => device.kind === 'videoinput')
       setAvailableCameras(videoDevices)
@@ -166,7 +169,9 @@ const BecomeSanta = () => {
         setSelectedCameraId(videoDevices[0].deviceId)
       }
     } catch (error) {
-      console.error('Error enumerating cameras:', error)
+      // Silently handle camera permission errors - user can grant permission later when they click "Start Camera"
+      console.log('Camera enumeration skipped (permission not granted or no camera available):', error)
+      setAvailableCameras([])
     }
   }
 
@@ -175,6 +180,11 @@ const BecomeSanta = () => {
       setCameraError(undefined)
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
+      }
+      
+      // If no cameras are available, try to enumerate again (user may have granted permission)
+      if (availableCameras.length === 0) {
+        await enumerateCameras()
       }
       
       const constraints: MediaStreamConstraints = {
@@ -192,13 +202,27 @@ const BecomeSanta = () => {
         await videoRef.current.play()
       }
       setCameraReady(true)
+      
+      // After starting camera, enumerate devices again to get proper labels
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const videoDevices = devices.filter((device) => device.kind === 'videoinput')
+      if (videoDevices.length > 0) {
+        setAvailableCameras(videoDevices)
+        if (!selectedCameraId && videoDevices.length > 0) {
+          setSelectedCameraId(videoDevices[0].deviceId)
+        }
+      }
     } catch (error) {
       setCameraError((error as Error).message)
     }
   }
 
   useEffect(() => {
-    enumerateCameras()
+    enumerateCameras().catch((error) => {
+      // Handle any unhandled promise rejections
+      console.log('Camera enumeration error handled:', error)
+      setAvailableCameras([])
+    })
   }, [])
 
   const captureFrame = () => {
@@ -220,7 +244,7 @@ const BecomeSanta = () => {
     }
 
     if (!transcript) {
-      setCameraError('Please record your thoughts about Christmas first.')
+      setCameraError('Please record your thoughts about giving presents first.')
       return
     }
 
@@ -232,10 +256,11 @@ const BecomeSanta = () => {
     try {
       const response = await apiClient.post<{
         styledImageUrl: string
-      }>('/santa-portrait', {
+      }>('/sleigh-portrait', {
         photoDataUrl: imageUrl,
         transcript,
-        style: santaStyle,
+        mode,
+        style: sleighStyle,
       })
 
       setStyledUrl(response.styledImageUrl)
@@ -254,7 +279,7 @@ const BecomeSanta = () => {
 
   const handleSendEmail = async () => {
     if (!styledUrl) {
-      setEmailStatus('Generate a Santa portrait first.')
+      setEmailStatus('Generate a sleigh portrait first.')
       return
     }
     if (!email.trim()) {
@@ -267,7 +292,7 @@ const BecomeSanta = () => {
       await apiClient.post('/send-photo-email', {
         email,
         styledImageUrl: styledUrl,
-        characterType: 'santa',
+        characterType: 'sleigh',
       })
       setEmailStatus('Email sent! Check your inbox.')
     } catch (error) {
@@ -279,15 +304,15 @@ const BecomeSanta = () => {
 
   const getPrompt = () => {
     return {
-      en: 'What does Christmas mean to you and why is it important to celebrate?',
-      th: 'คริสต์มาสมีความหมายต่อคุณอย่างไร และทำไมจึงสำคัญที่ต้องฉลอง?',
+      en: 'Why is giving presents on Christmas important?',
+      th: 'ทำไมการให้ของขวัญในวันคริสต์มาสจึงสำคัญ?',
     }
   }
 
   return (
     <ActivityLayout
-      title="Become Santa"
-      subtitle="Share what Christmas means to you and transform into Santa!"
+      title="Give Santa a Ride"
+      subtitle="Share why giving presents is important and ride with Santa!"
     >
       {/* Voice Recording Section */}
       <section className="space-y-4 rounded-2xl border-2 border-white bg-[#16A34A]/10 p-4">
@@ -303,7 +328,7 @@ const BecomeSanta = () => {
             </div>
           </div>
 
-          {/* Input Section - Show both recording and text input side by side when not recording */}
+          {/* Input Section */}
           <div className="flex flex-wrap items-start gap-3">
             {/* Start Recording Button */}
             <button
@@ -330,7 +355,7 @@ const BecomeSanta = () => {
                 <textarea
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Type your thoughts about Christmas here..."
+                  placeholder="Type your thoughts about giving presents here..."
                   className="flex-1 rounded-xl border-2 border-white/30 bg-[#ee564a]/20 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:border-white resize-none"
                   rows={1}
                 />
@@ -396,8 +421,8 @@ const BecomeSanta = () => {
 
         {/* Photo Booth Section - Only show when transcript exists */}
         {transcript && (
-          <section className="space-y-4 rounded-2xl border-2 border-white bg-gradient-to-br from-[#DC2626]/40 via-[#B91C1C]/30 to-[#16A34A]/30 p-4 shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-            <h3 className="text-xl font-semibold text-white">Transform into Santa!</h3>
+          <section className="space-y-4 rounded-2xl border-2 border-white bg-gradient-to-br from-[#8B4513]/40 via-[#DC2626]/30 to-[#16A34A]/30 p-4 shadow-[0_0_20px_rgba(139,69,19,0.3)]">
+            <h3 className="text-xl font-semibold text-white">Ride with Santa!</h3>
 
             <div className="grid gap-6 md:grid-cols-[3fr,2fr]">
               <div className="space-y-3">
@@ -414,7 +439,7 @@ const BecomeSanta = () => {
                           streamRef.current.getTracks().forEach((track) => track.stop())
                         }
                       }}
-                      className="w-full rounded-xl border-2 border-white/30 bg-gradient-to-r from-[#DC2626]/60 to-[#16A34A]/60 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:border-white"
+                      className="w-full rounded-xl border-2 border-white/30 bg-gradient-to-r from-[#8B4513]/60 to-[#DC2626]/60 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:border-white"
                     >
                       {availableCameras.map((camera) => (
                         <option key={camera.deviceId} value={camera.deviceId}>
@@ -424,8 +449,8 @@ const BecomeSanta = () => {
                     </select>
                   </div>
                 )}
-                <div className="rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#DC2626]/30 via-[#B91C1C]/20 to-[#16A34A]/20 p-3 shadow-[0_0_15px_rgba(220,38,38,0.2)]">
-                  <video ref={videoRef} className="h-96 w-full rounded-xl bg-gradient-to-br from-[#DC2626]/20 to-[#16A34A]/20 object-cover" playsInline muted />
+                <div className="rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#8B4513]/30 via-[#DC2626]/20 to-[#16A34A]/20 p-3 shadow-[0_0_15px_rgba(139,69,19,0.2)]">
+                  <video ref={videoRef} className="h-96 w-full rounded-xl bg-gradient-to-br from-[#8B4513]/20 to-[#DC2626]/20 object-cover" playsInline muted />
                   <div className="mt-3 flex flex-wrap gap-3">
                     <button
                       onClick={startCamera}
@@ -445,40 +470,67 @@ const BecomeSanta = () => {
                 {cameraError && <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-200">{cameraError}</p>}
               </div>
 
-              <div className="space-y-3 rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#DC2626]/30 via-[#F59E0B]/20 to-[#16A34A]/30 p-4 shadow-[0_0_15px_rgba(220,38,38,0.2)]">
-                {/* Santa Style Selection */}
+              <div className="space-y-3 rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#8B4513]/30 via-[#F59E0B]/20 to-[#DC2626]/30 p-4 shadow-[0_0_15px_rgba(139,69,19,0.2)]">
+                {/* Mode Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm text-white/70 block">Choose Santa Style</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <label className="text-sm text-white/70 block">Choose Mode</label>
+                  <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => setSantaStyle('jolly')}
+                      onClick={() => setMode('single')}
                       className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
-                        santaStyle === 'jolly'
+                        mode === 'single'
                           ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
-                          : 'border-white/30 bg-[#DC2626]/20 text-white/70 hover:border-white/60'
+                          : 'border-white/30 bg-[#16A34A]/20 text-white/70 hover:border-white/60'
                       }`}
                     >
-                      Jolly
+                      1 Person
                     </button>
                     <button
-                      onClick={() => setSantaStyle('pirate')}
+                      onClick={() => setMode('group')}
                       className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
-                        santaStyle === 'pirate'
+                        mode === 'group'
                           ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
-                          : 'border-white/30 bg-[#DC2626]/20 text-white/70 hover:border-white/60'
+                          : 'border-white/30 bg-[#16A34A]/20 text-white/70 hover:border-white/60'
                       }`}
                     >
-                      Pirate
+                      Group
+                    </button>
+                  </div>
+                </div>
+
+                {/* Style Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm text-white/70 block">Choose Style</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      onClick={() => setSleighStyle('rider')}
+                      className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
+                        sleighStyle === 'rider'
+                          ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
+                          : 'border-white/30 bg-[#16A34A]/20 text-white/70 hover:border-white/60'
+                      }`}
+                    >
+                      The Rider
                     </button>
                     <button
-                      onClick={() => setSantaStyle('evil')}
+                      onClick={() => setSleighStyle('the-ride')}
                       className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
-                        santaStyle === 'evil'
+                        sleighStyle === 'the-ride'
                           ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
-                          : 'border-white/30 bg-[#DC2626]/20 text-white/70 hover:border-white/60'
+                          : 'border-white/30 bg-[#16A34A]/20 text-white/70 hover:border-white/60'
                       }`}
                     >
-                      Evil Santa
+                      The Ride
+                    </button>
+                    <button
+                      onClick={() => setSleighStyle('the-mess')}
+                      className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold transition ${
+                        sleighStyle === 'the-mess'
+                          ? 'border-white bg-white/20 text-white shadow-[0_0_10px_rgba(255,255,255,0.4)]'
+                          : 'border-white/30 bg-[#16A34A]/20 text-white/70 hover:border-white/60'
+                      }`}
+                    >
+                      The Mess
                     </button>
                   </div>
                 </div>
@@ -495,10 +547,10 @@ const BecomeSanta = () => {
                         animate={{ rotate: 360 }}
                         transition={{ repeat: Infinity, ease: 'linear', duration: 0.8 }}
                       />
-                      Generating Santa Portrait...
+                      Generating Sleigh Portrait...
                     </>
                   ) : (
-                    'Generate Santa Portrait'
+                    'Generate Sleigh Portrait'
                   )}
                 </button>
               </div>
@@ -519,19 +571,19 @@ const BecomeSanta = () => {
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, ease: 'linear', duration: 1 }}
                   />
-                  <p className="text-sm text-white/70 mt-4">Creating your Santa portrait...</p>
+                  <p className="text-sm text-white/70 mt-4">Creating your sleigh portrait...</p>
                 </div>
               )}
 
               {styledUrl && !isGenerating && (
                 <div className="space-y-2 rounded-2xl border-2 border-[#DC2626] bg-[#DC2626]/10 p-4">
-                  <p className="text-sm font-semibold text-[#DC2626]">Your Santa Portrait</p>
+                  <p className="text-sm font-semibold text-[#DC2626]">Your Sleigh Portrait</p>
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(true)}
                     className="w-full focus:outline-none"
                   >
-                    <img src={styledUrl} alt="Santa Portrait" className="w-full rounded-xl border-2 border-white/10 object-cover transition hover:opacity-90 cursor-pointer" />
+                    <img src={styledUrl} alt="Sleigh Portrait" className="w-full rounded-xl border-2 border-white/10 object-cover transition hover:opacity-90 cursor-pointer" />
                   </button>
                   
                   <div className="space-y-2 mt-4">
@@ -572,7 +624,7 @@ const BecomeSanta = () => {
                 >
                   <motion.img
                     src={styledUrl}
-                    alt="Expanded Santa Portrait"
+                    alt="Expanded Sleigh Portrait"
                     className="max-h-[90vh] max-w-5xl rounded-2xl border border-white/20 object-contain"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
@@ -588,5 +640,5 @@ const BecomeSanta = () => {
     )
   }
 
-  export default BecomeSanta
+  export default GiveSantaRide
 

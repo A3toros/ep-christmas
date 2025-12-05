@@ -35,6 +35,8 @@ CRITICAL FACIAL PRESERVATION REQUIREMENTS (MUST BE FOLLOWED):
 - PRESERVE SKIN TONE: Keep the exact skin tone and complexion from the original photo
 - PRESERVE HAIR: Keep the person's hair color, texture, and style exactly as shown in the photo
 - ONLY ADD COSTUME ELEMENTS: Add elf costume, pointed ears, hat, and accessories WITHOUT changing any facial features
+- FACE MUST ORGANICALLY MATCH THE BODY: The face should naturally fit and blend with the body proportions and pose - adjust face position/orientation if needed to match the body's pose and angle
+- FACE POSITION CAN BE CHANGED: The face position, angle, and orientation can be adjusted to match the body's pose and make it look natural and organic
 
 CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
 - NEVER PRESERVE THE ORIGINAL BACKGROUND: Completely replace the background with a NEW Christmas-themed background
@@ -62,6 +64,8 @@ CRITICAL FACIAL PRESERVATION REQUIREMENTS (MUST BE FOLLOWED):
 - PRESERVE SKIN TONE: Keep the exact skin tone and complexion from the original photo
 - PRESERVE HAIR: Keep the person's hair color, texture, and style exactly as shown in the photo
 - ONLY ADD COSTUME ELEMENTS: Add elf costume, pointed ears, hat, and accessories WITHOUT changing any facial features
+- FACE MUST ORGANICALLY MATCH THE BODY: The face should naturally fit and blend with the body proportions and pose - adjust face position/orientation if needed to match the body's pose and angle
+- FACE POSITION CAN BE CHANGED: The face position, angle, and orientation can be adjusted to match the body's pose and make it look natural and organic
 - EXPRESSION: Use the person's natural expression - do not dramatically alter their facial expression
 
 CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
@@ -86,6 +90,8 @@ CRITICAL REQUIREMENTS:
 - PRESERVE FACIAL IDENTITY: Keep the person recognizable - maintain their face shape, nose shape, mouth shape, and overall facial structure
 - PRESERVE SKIN TONE: Keep the exact skin tone and complexion from the original photo
 - PRESERVE HAIR: Keep the person's hair color, texture, and style exactly as shown in the photo
+- FACE MUST ORGANICALLY MATCH THE BODY: The face should naturally fit and blend with the body proportions and pose - adjust face position/orientation if needed to match the body's pose and angle
+- FACE POSITION CAN BE CHANGED: The face position, angle, and orientation can be adjusted to match the body's pose and make it look natural and organic
 - APPLY DOBBY FEATURES: Give the person Dobby's distinctive characteristics:
   * Large, expressive eyes (slightly larger than normal, but keep the person's eye color and shape)
   * Large bat-like ears (extend the person's ears to be larger and more bat-like, positioned higher on the head)
@@ -112,6 +118,8 @@ CRITICAL FACIAL PRESERVATION REQUIREMENTS (MUST BE FOLLOWED):
 - PRESERVE SKIN TONE: Keep the exact skin tone and complexion from the original photo
 - PRESERVE HAIR: Keep the person's hair color, texture, and style exactly as shown in the photo
 - ONLY ADD COSTUME ELEMENTS: Add elf costume, pointed ears, hat, and accessories WITHOUT changing any facial features
+- FACE MUST ORGANICALLY MATCH THE BODY: The face should naturally fit and blend with the body proportions and pose - adjust face position/orientation if needed to match the body's pose and angle
+- FACE POSITION CAN BE CHANGED: The face position, angle, and orientation can be adjusted to match the body's pose and make it look natural and organic
 
 CRITICAL BACKGROUND REQUIREMENT (MUST BE FOLLOWED):
 - NEVER PRESERVE THE ORIGINAL BACKGROUND: Completely replace the background with a NEW Christmas-themed background
@@ -244,6 +252,36 @@ The portrait should be colorful, joyful, and Christmas-themed while maintaining 
               styledImageUrl = part.image_url
               break
             }
+            // Check for direct image data
+            if (part?.url) {
+              styledImageUrl = part.url
+              break
+            }
+            if (part?.image) {
+              styledImageUrl = typeof part.image === 'string' ? part.image : part.image.url
+              break
+            }
+          }
+        }
+        
+        // Check for content array (some models return images in content array)
+        if (!styledImageUrl && choice.message.content && Array.isArray(choice.message.content)) {
+          for (const contentItem of choice.message.content) {
+            if (contentItem?.type === 'image_url' && contentItem?.image_url?.url) {
+              styledImageUrl = contentItem.image_url.url
+              break
+            }
+            if (contentItem?.type === 'image' && contentItem?.url) {
+              styledImageUrl = contentItem.url
+              break
+            }
+            if (contentItem?.image_url) {
+              const url = typeof contentItem.image_url === 'string' ? contentItem.image_url : contentItem.image_url.url
+              if (url) {
+                styledImageUrl = url
+                break
+              }
+            }
           }
         }
         
@@ -256,6 +294,28 @@ The portrait should be colorful, joyful, and Christmas-themed while maintaining 
         if (!styledImageUrl && choice.message.image) {
           styledImageUrl = typeof choice.message.image === 'string' ? choice.message.image : choice.message.image.url
         }
+        
+        // Check for data property (some models return base64 in data)
+        if (!styledImageUrl && choice.message.data) {
+          if (typeof choice.message.data === 'string' && choice.message.data.startsWith('data:image')) {
+            styledImageUrl = choice.message.data
+          } else if (choice.message.data.url) {
+            styledImageUrl = choice.message.data.url
+          }
+        }
+      }
+      
+      // Check top-level response properties
+      if (!styledImageUrl) {
+        if (imageResponse.url) {
+          styledImageUrl = imageResponse.url
+        }
+        if (!styledImageUrl && imageResponse.image) {
+          styledImageUrl = typeof imageResponse.image === 'string' ? imageResponse.image : imageResponse.image.url
+        }
+        if (!styledImageUrl && imageResponse.data && imageResponse.data.url) {
+          styledImageUrl = imageResponse.data.url
+        }
       }
     }
 
@@ -263,12 +323,30 @@ The portrait should be colorful, joyful, and Christmas-themed while maintaining 
       // Final check - maybe the response is just text describing the image
       const textResponse = imageResponse.choices?.[0]?.message?.content
       if (typeof textResponse === 'string' && textResponse.length > 0) {
-        console.error('[elf-portrait] Response is text, not image:', textResponse.substring(0, 500))
-        throw new Error('The model returned text instead of an image. This model may not support image generation.')
+        // Check if text contains a URL
+        const urlMatch = textResponse.match(/https?:\/\/[^\s]+|data:image\/[^;]+;base64,[^\s]+/i)
+        if (urlMatch) {
+          styledImageUrl = urlMatch[0]
+          console.log('[elf-portrait] Found image URL in text response')
+        } else {
+          console.error('[elf-portrait] Response is text, not image:', textResponse.substring(0, 500))
+          throw new Error('The model returned text instead of an image. This model may not support image generation.')
+        }
       }
       
-      console.error('[elf-portrait] No image URL found in response. Full response:', JSON.stringify(imageResponse, null, 2))
-      throw new Error('Failed to extract image URL from response. The model may not support image generation or returned an unexpected format.')
+      if (!styledImageUrl) {
+        // Log response structure for debugging
+        console.error('[elf-portrait] No image URL found in response.')
+        console.error('[elf-portrait] Response structure:', {
+          hasChoices: !!imageResponse.choices,
+          choicesLength: imageResponse.choices?.length,
+          firstChoiceKeys: imageResponse.choices?.[0] ? Object.keys(imageResponse.choices[0]) : [],
+          messageKeys: imageResponse.choices?.[0]?.message ? Object.keys(imageResponse.choices[0].message) : [],
+          topLevelKeys: Object.keys(imageResponse),
+        })
+        console.error('[elf-portrait] Full response (truncated):', JSON.stringify(imageResponse, null, 2).substring(0, 2000))
+        throw new Error('Failed to extract image URL from response. The model may not support image generation or returned an unexpected format.')
+      }
     }
 
     console.log('[elf-portrait] Image URL extracted successfully', {

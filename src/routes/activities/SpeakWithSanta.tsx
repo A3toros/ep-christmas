@@ -10,7 +10,21 @@ import { useConfetti } from '../../hooks/useConfetti'
 
 const STORAGE_KEY = 'speak-with-santa-storage'
 
-const praiseWords = ['Great', 'Perfect', 'Awesome', 'Amazing', 'Impressive', 'Wonderful', 'Excellent', 'Fantastic']
+const praiseWords = [
+  'Pure Christmas magic',
+  'Wonder-filled',
+  'North-Pole-worthy',
+  'Santa would be proud',
+  'Snow-globe perfect',
+  'Reindeer-level awesome',
+  'Sleigh-ride spectacular',
+  'North-Star brilliant',
+  'Christmas-Eve epic',
+  'Magical',
+  'True christmas spirit',
+  'Spectacular',
+  'Super dooper awesome',
+]
 
 const SpeakWithSanta = () => {
   useClearLocalStorage([STORAGE_KEY])
@@ -601,7 +615,7 @@ const SpeakWithSanta = () => {
 
         {/* Photo Booth Section - Only show when Santa has responded */}
         {santaResponse && (
-          <section className="space-y-4 rounded-2xl border-2 border-white bg-[#1E2A49]/90 p-4">
+          <section className="space-y-4 rounded-2xl border-2 border-white bg-gradient-to-br from-[#16A34A]/40 via-[#15803D]/30 to-[#DC2626]/30 p-4 shadow-[0_0_20px_rgba(22,163,74,0.3)]">
             <h3 className="text-xl font-semibold text-white">Become an Elf!</h3>
             <div className="grid gap-6 md:grid-cols-[3fr,2fr]">
               <div className="space-y-3">
@@ -618,7 +632,7 @@ const SpeakWithSanta = () => {
                           streamRef.current.getTracks().forEach((track) => track.stop())
                         }
                       }}
-                      className="w-full rounded-xl border-2 border-white/30 bg-[#1E2A49] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:border-white"
+                      className="w-full rounded-xl border-2 border-white/30 bg-gradient-to-r from-[#16A34A]/60 to-[#DC2626]/60 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:border-white"
                     >
                       {availableCameras.map((camera) => (
                         <option key={camera.deviceId} value={camera.deviceId}>
@@ -628,8 +642,8 @@ const SpeakWithSanta = () => {
                     </select>
                   </div>
                 )}
-                <div className="rounded-2xl border-2 border-white/20 bg-black/40 p-3">
-                  <video ref={videoRef} className="h-96 w-full rounded-xl bg-black object-cover" playsInline muted />
+                <div className="rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#16A34A]/30 via-[#15803D]/20 to-[#DC2626]/20 p-3 shadow-[0_0_15px_rgba(22,163,74,0.2)]">
+                  <video ref={videoRef} className="h-96 w-full rounded-xl bg-gradient-to-br from-[#16A34A]/20 to-[#DC2626]/20 object-cover" playsInline muted />
                   <div className="mt-3 flex flex-wrap gap-3">
                     <button
                       onClick={startCamera}
@@ -649,7 +663,7 @@ const SpeakWithSanta = () => {
                 {cameraError && <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-200">{cameraError}</p>}
               </div>
 
-              <div className="space-y-3 rounded-2xl border-2 border-white/20 bg-[#16A34A]/10 p-4">
+              <div className="space-y-3 rounded-2xl border-2 border-white/20 bg-gradient-to-br from-[#16A34A]/30 via-[#F59E0B]/20 to-[#DC2626]/30 p-4 shadow-[0_0_15px_rgba(22,163,74,0.2)]">
                 {/* Style Selection */}
                 <div className="space-y-2">
                   <label className="text-sm text-white/70 block">Choose Elf Style</label>

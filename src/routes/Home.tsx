@@ -44,14 +44,27 @@ const Home = () => {
           
           {/* Header */}
           <section className="text-center rounded-2xl bg-[#DC2626]/30 p-6">
-            <motion.p
-              className="text-xl md:text-2xl text-white/90"
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.8 }}
+              className="flex flex-col items-center gap-4"
             >
-              Merry Christmas
-            </motion.p>
+              <img
+                src="/christmas.png"
+                alt="Christmas Tree"
+                className="w-36 md:w-44 h-auto"
+                loading="lazy"
+              />
+              <motion.p
+                className="text-xl md:text-2xl text-white/90"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+              >
+                Merry Christmas from Mathayomwatsing!
+              </motion.p>
+            </motion.div>
           </section>
 
           {/* Activities Grid */}
@@ -62,16 +75,28 @@ const Home = () => {
                 <Link
                   key={activity.slug}
                   to={`/activity/${activity.slug}`}
-                  className="block"
+                  className="block h-full"
                 >
                   <motion.article
-                    className="rounded-2xl border-2 border-white bg-[#00ff5e]/40 p-6 transition hover:-translate-y-1 hover:border-white hover:bg-[#22C55E]/50 hover:shadow-[0_0_30px_rgba(34,197,94,0.4)] cursor-pointer"
+                    className="rounded-2xl border-2 border-white bg-[#00ff5e]/40 p-6 transition hover:-translate-y-1 hover:border-white hover:bg-[#22C55E]/50 hover:shadow-[0_0_30px_rgba(34,197,94,0.4)] cursor-pointer h-full flex flex-col"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
                   >
-                    <h3 className="font-display text-xl text-white mb-2">{activity.title}</h3>
-                    <p className="text-sm text-white/80">{activity.description}</p>
+                    <div className={activity.slug === 'become-santa' || activity.slug === 'speak-with-santa' || activity.slug === 'give-santa-ride' || activity.slug === 'destroy-christmas' ? 'flex items-center gap-3 flex-1' : 'flex-1'}>
+                      {(activity.slug === 'become-santa' || activity.slug === 'speak-with-santa' || activity.slug === 'give-santa-ride' || activity.slug === 'destroy-christmas') && (
+                        <img
+                          src={activity.slug === 'become-santa' ? '/santa.png' : activity.slug === 'speak-with-santa' ? '/speak.png' : activity.slug === 'give-santa-ride' ? '/deer.png' : '/evil-santa.png'}
+                          alt={activity.slug === 'become-santa' ? 'Santa Claus' : activity.slug === 'speak-with-santa' ? 'Speak with Santa' : activity.slug === 'give-santa-ride' ? 'Give Santa a Ride' : 'Destroy Christmas'}
+                          className="w-12 h-12 flex-shrink-0"
+                          loading="lazy"
+                        />
+                      )}
+                      <div>
+                        <h3 className="font-display text-xl text-white mb-2">{activity.title}</h3>
+                        <p className="text-sm text-white/80">{activity.description}</p>
+                      </div>
+                    </div>
                   </motion.article>
                 </Link>
               ))}

@@ -41,23 +41,37 @@ exports.handler = async (event) => {
     // Determine character type
     const isElf = characterType === 'elf'
     const isSanta = characterType === 'santa'
+    const isSleigh = characterType === 'sleigh'
+    const isDestroyChristmas = characterType === 'destroy-christmas'
     
     // Christmas color scheme
-    const primaryColor = isElf ? '#16A34A' : '#DC2626' // Green for elf, red for Santa
-    const secondaryColor = isElf ? '#F59E0B' : '#F59E0B' // Gold for both
+    const primaryColor = isElf ? '#16A34A' : isSleigh ? '#8B4513' : isDestroyChristmas ? '#7C2D12' : '#DC2626' // Green for elf, brown for sleigh, dark red for destroy, red for Santa
+    const secondaryColor = isElf ? '#F59E0B' : '#F59E0B' // Gold for all
     const accentColor = '#F59E0B' // Gold
     
     // Email subject and title
     const emailSubject = isElf 
       ? 'Your Christmas Elf Portrait!'
+      : isSleigh
+      ? 'Your Sleigh Ride Portrait!'
+      : isDestroyChristmas
+      ? 'Your Destroy Christmas Portrait!'
       : 'Your Santa Portrait!'
     
     const emailTitle = isElf
       ? 'Your Christmas Elf Portrait'
+      : isSleigh
+      ? 'Your Sleigh Ride Portrait'
+      : isDestroyChristmas
+      ? 'Your Destroy Christmas Portrait'
       : 'Your Santa Portrait'
     
     const characterLabel = isElf
       ? 'You are now Santa\'s Friend Elf!'
+      : isSleigh
+      ? 'You\'re riding with Santa!'
+      : isDestroyChristmas
+      ? 'You are now a Christmas Destroyer!'
       : 'You are now Santa!'
 
     // Convert base64 to buffer for email attachment
@@ -110,6 +124,10 @@ exports.handler = async (event) => {
       <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; line-height: 1.6;">
         ${isElf 
           ? 'Check the attachment below to see your AI-generated Christmas elf portrait!'
+          : isSleigh
+          ? 'Check the attachment below to see your AI-generated sleigh ride portrait!'
+          : isDestroyChristmas
+          ? 'Check the attachment below to see your AI-generated destroy Christmas portrait!'
           : 'Check the attachment below to see your AI-generated Santa portrait!'}
       </p>
     </div>
@@ -119,6 +137,10 @@ exports.handler = async (event) => {
       <p style="margin: 0 0 16px 0; color: #FFFFFF; font-size: 18px; line-height: 1.7; font-weight: 500;">
         ${isElf 
           ? 'Ho Ho Ho! You\'re now one of Santa\'s friend elves!'
+          : isSleigh
+          ? 'Ho Ho Ho! You\'re riding with Santa in his magical sleigh!'
+          : isDestroyChristmas
+          ? 'You\'ve become a Christmas destroyer!'
           : 'Ho Ho Ho! You\'re now Santa!'}
       </p>
       <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 16px; line-height: 1.7;">
@@ -168,7 +190,7 @@ exports.handler = async (event) => {
     if (imageBuffer && imageCid) {
       mailOptions.attachments = [
         {
-          filename: isElf ? 'elf-portrait.png' : 'santa-portrait.png',
+          filename: isElf ? 'elf-portrait.png' : isSleigh ? 'sleigh-portrait.png' : isDestroyChristmas ? 'destroy-christmas-portrait.png' : 'santa-portrait.png',
           content: imageBuffer,
           cid: imageCid,
         },
